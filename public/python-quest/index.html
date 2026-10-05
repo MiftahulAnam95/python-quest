@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Python Quest — Petualangan Belajar Python</title>
+  <meta name="description" content="Belajar Python dari nol, satu quest demi satu quest! Website belajar Python interaktif ala game RPG untuk pemula total.">
+  <meta name="theme-color" content="#0f172a">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐍</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/lesson.css">
+  <link rel="stylesheet" href="css/landing.css">
+</head>
+<body class="landing">
+  <a class="skip-link" href="#main">Lewati ke konten</a>
+  <header class="land-nav-wrap">
+    <div class="land-nav">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">Py</span><span class="brand-text">Python<b>Quest</b></span></a>
+      <nav class="land-links" aria-label="Navigasi landing">
+        <a href="#fitur" class="hide-sm">Fitur</a>
+        <a href="#world" class="hide-sm">Roadmap</a>
+        <a href="playground.html" class="hide-sm">Playground</a>
+        <a href="dashboard.html" class="btn btn-primary btn-sm js-cta-short">Mulai Belajar</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="land-hero">
+      <div class="land-hero-text">
+        <span class="pill"><span class="pill-dot"></span> Untuk pemula total · Gratis · Tanpa install</span>
+        <h1>Belajar Python <span class="hl">Tanpa Takut</span> Coding.</h1>
+        <p class="lead">Mulai dari nol, selesaikan quest, dapatkan XP, dan perlahan berubah dari <b>noob</b> menjadi <b>Python Explorer</b>.</p>
+        <div class="btn-row">
+          <a href="dashboard.html" class="btn btn-primary btn-lg js-cta">Mulai Petualangan
+            <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+          <a href="roadmap.html" class="btn btn-ghost btn-lg">Lihat Roadmap</a>
+        </div>
+        <ul class="hero-proof">
+          <li><b>52</b><span>quest</span></li>
+          <li><b>7</b><span>world</span></li>
+          <li><b>4</b><span>mini game</span></li>
+          <li><b>41</b><span>soal quiz</span></li>
+        </ul>
+        <p class="muted small js-progress-note" aria-live="polite"></p>
+      </div>
+
+      <div class="land-hero-art">
+        <div class="art-frame">
+          <img src="assets/images/hero.png" alt="Ilustrasi karakter programmer kecil membawa laptop dan ransel, berpetualang bersama ular Python yang ramah menuju kastil" width="560" height="560">
+        </div>
+        <div class="mock mock-code" aria-hidden="true">
+          <div class="mock-head"><span class="dots"><i></i><i></i><i></i></span><span>quest_02.py</span></div>
+          <pre><span class="tk-call">nama</span> <span class="tk-op">=</span> <span class="tk-str">"Miftah"</span>
+<span class="tk-fn">print</span><span class="tk-op">(</span>nama<span class="tk-op">)</span></pre>
+          <div class="mock-out">› Miftah</div>
+        </div>
+        <div class="mock mock-xp" aria-hidden="true">
+          <span class="mock-xp-ic">🎉</span>
+          <div><b>Quest Complete!</b><div class="mock-xp-bar"><i></i></div></div>
+          <span class="mock-xp-val">+100 XP</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="land-section">
+      <div class="demo">
+        <div class="demo-code">
+          <p class="eyebrow">Pendekatan "bahasa bayi"</p>
+          <h2 class="section-title left">Kode dijelaskan seperti ngobrol dengan teman.</h2>
+          <p class="muted">Tanpa istilah berat di awal. Setiap konsep pakai analogi sehari-hari, lalu langsung dipraktikkan.</p>
+        </div>
+        <div class="demo-card card">
+          <div class="codeblock"><pre><code><span class="tk-call">nama</span> <span class="tk-op">=</span> <span class="tk-str">"Miftah"</span>
+<span class="tk-fn">print</span><span class="tk-op">(</span>nama<span class="tk-op">)</span></code></pre></div>
+          <ul class="demo-explain">
+            <li><span class="demo-num">1</span><p><b>Variable itu seperti kotak yang punya nama.</b> Kita punya kotak bernama <code>nama</code>.</p></li>
+            <li><span class="demo-num">2</span><p>Tanda <code>=</code> artinya <b>masukkan</b> tulisan <code>Miftah</code> ke dalam kotak.</p></li>
+            <li><span class="demo-num">3</span><p><code>print(nama)</code> = buka kotaknya dan lihat isinya → <b>Miftah</b></p></li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section class="land-section" id="fitur">
+      <p class="eyebrow center">Kenapa Python Quest</p>
+      <h2 class="section-title">Kenapa belajar di sini?</h2>
+      <div class="why-grid">
+        <div class="why"><span class="why-ic tone-green" aria-hidden="true">🐣</span><h3>Benar-benar dari nol</h3><p>Tidak perlu pengalaman coding.</p></div>
+        <div class="why"><span class="why-ic tone-violet" aria-hidden="true">🎮</span><h3>Belajar sambil bermain</h3><p>Ada XP, level, quest, badge, dan challenge.</p></div>
+        <div class="why"><span class="why-ic tone-blue" aria-hidden="true">🧠</span><h3>Bahasa manusia</h3><p>Materi dijelaskan dengan bahasa sederhana.</p></div>
+        <div class="why"><span class="why-ic tone-orange" aria-hidden="true">💻</span><h3>Langsung praktik</h3><p>Kode Python berjalan langsung di browser.</p></div>
+        <div class="why"><span class="why-ic tone-amber" aria-hidden="true">🏆</span><h3>Naik level</h3><p>Setiap materi yang selesai memberikan XP.</p></div>
+      </div>
+    </section>
+
+    <section class="land-section" id="world">
+      <p class="eyebrow center">Roadmap</p>
+      <h2 class="section-title">Peta petualanganmu</h2>
+      <ol class="world-strip">
+        <li style="--wc:#22c55e"><span aria-hidden="true">🌱</span><small>World 1</small><b>Python Village</b><em>print, variable, input</em></li>
+        <li style="--wc:#16a34a"><span aria-hidden="true">🌲</span><small>World 2</small><b>Logic Forest</b><em>if, elif, else</em></li>
+        <li style="--wc:#f59e0b"><span aria-hidden="true">🏜️</span><small>World 3</small><b>Loop Desert</b><em>for, while</em></li>
+        <li style="--wc:#8b5cf6"><span aria-hidden="true">🏰</span><small>World 4</small><b>Function Castle</b><em>def, return</em></li>
+        <li style="--wc:#0ea5e9"><span aria-hidden="true">🌊</span><small>World 5</small><b>Data Ocean</b><em>list, dict</em></li>
+        <li style="--wc:#ef4444"><span aria-hidden="true">🦇</span><small>World 6</small><b>Bug Cave</b><em>membaca error</em></li>
+        <li style="--wc:#0f766e"><span aria-hidden="true">⚔️</span><small>World 7</small><b>Python Adventure</b><em>mini project</em></li>
+      </ol>
+    </section>
+
+    <section class="land-section">
+      <p class="eyebrow center">Cara kerja</p>
+      <h2 class="section-title">Tiga langkah, setiap quest</h2>
+      <div class="how-grid">
+        <div class="how"><span class="how-num">1</span><h3>Baca cerita singkat</h3><p>Setiap quest dimulai dengan cerita dan analogi sehari-hari.</p></div>
+        <div class="how"><span class="how-num">2</span><h3>Ketik & jalankan kode</h3><p>Editor Python langsung di browser. Salah? Ada hint bertahap.</p></div>
+        <div class="how"><span class="how-num">3</span><h3>Dapat XP & naik level</h3><p>Kumpulkan badge, jaga streak, dan taklukkan FINAL QUEST.</p></div>
+      </div>
+    </section>
+
+    <section class="land-section">
+      <div class="final-cta">
+        <div>
+          <h2>Siap memulai quest pertamamu?</h2>
+          <p>Hanya butuh 5 menit untuk membuat Python berbicara untuk pertama kalinya.</p>
+        </div>
+        <a href="dashboard.html" class="btn btn-primary btn-lg js-cta">Mulai Petualangan</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="land-footer">
+    <div class="land-footer-inner">
+      <a class="brand" href="index.html"><span class="brand-mark" aria-hidden="true">Py</span><span class="brand-text">Python<b>Quest</b></span></a>
+      <p class="muted small">Belajar Python dari nol, satu quest demi satu quest. Progress tersimpan di browser kamu (localStorage) — tanpa akun, tanpa server.</p>
+    </div>
+  </footer>
+
+  <script src="js/storage.js"></script>
+  <script>
+    try {
+      var p = loadProgress();
+      if (p.xp > 0 || p.completedLessons.length) {
+        var info = getLevelInfo(p.xp);
+        document.querySelectorAll(".js-cta").forEach(function (a) { a.firstChild.textContent = "Lanjutkan Petualangan (Lv " + info.level + ") "; });
+        document.querySelectorAll(".js-cta-short").forEach(function (a) { a.textContent = "Dashboard"; });
+        var note = document.querySelector(".js-progress-note");
+        if (note) note.textContent = "Selamat datang kembali, " + p.name + "! Kamu punya " + p.xp + " XP dan " + p.completedLessons.length + " quest selesai.";
+      }
+    } catch (e) { /* tetap tampilkan landing biasa */ }
+  </script>
+</body>
+</html>
