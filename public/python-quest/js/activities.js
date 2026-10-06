@@ -40,7 +40,7 @@ function renderPlayground() {
     if (!ch) {
       info.innerHTML = `<p class="eyebrow">🆓 MODE BEBAS</p><h2 class="h3">Eksperimen sesukamu</h2>
         <p>Tidak ada benar atau salah di sini. Coba semua yang sudah kamu pelajari!</p>
-        <ul class="check-list small"><li>📝 Jawaban <code>input()</code> diisi di kotak <b>Input Program</b>.</li><li>⌨️ <kbd>Ctrl</kbd>+<kbd>Enter</kbd> untuk menjalankan.</li><li>⚡ Python asli (Pyodide) dimuat otomatis. Kalau offline, Mini Python dipakai.</li></ul>`;
+        <ul class="check-list small"><li>📝 Jawab popup yang muncul setiap kali kode memanggil <code>input()</code>.</li><li>⌨️ <kbd>Ctrl</kbd>+<kbd>Enter</kbd> untuk menjalankan.</li><li>⚡ Python asli (Pyodide) dimuat otomatis. Kalau offline, Mini Python dipakai.</li></ul>`;
     } else {
       const done = loadProgress().playgroundDone.includes(ch.id);
       info.innerHTML = `<p class="eyebrow">${ch.icon} CHALLENGE ${done ? "· ✅ SELESAI" : `· +${XP.challenge} XP`}</p>
@@ -58,14 +58,13 @@ function renderPlayground() {
     const ed = createEditor($("#pg-editor"), {
       code: ch ? ch.starter : FREE_CODE,
       autoClosePairs: true,
-      onRun: () => (ch ? check() : run()),
+      onRun: () => run(),
     });
     const panel = createRunPanel($("#pg-run"), { inputs: ch ? ch.inputs || (ch.tests ? ch.tests[0].inputs : []) : ["Miftah"], checkLabel: ch ? `${icon("check")} Cek Jawaban` : null });
     async function run() {
       panel.showRunning();
-      const res = await runCode(ed.getCode(), panel.getInputs());
-      panel.showResult(res);
-      panel.feedback(res.error ? errorFeedbackHtml(res.error) : "", res.error ? "warn" : "info");
+      const res = await runCodeWithPrompts(ed.getCode(), panel.getInputs());
+      showInteractiveRunResult(panel, res, "", "info");
     }
     async function check() {
       panel.showRunning();
@@ -240,15 +239,21 @@ function gameDebug() {
         </div>
         <div class="split-right"><div id="dbg-editor"></div><div id="dbg-run"></div></div>
       </div>`;
-    const ed = createEditor($("#dbg-editor"), { code: r.code, onRun: () => attack() });
+    const ed = createEditor($("#dbg-editor"), { code: r.code, onRun: () => run() });
     const panel = createRunPanel($("#dbg-run"), { inputs: r.inputs || [], checkLabel: "⚔️ Serang!" });
-    panel.runBtn.addEventListener("click", async () => { panel.showRunning(); const res = await runCode(ed.getCode(), panel.getInputs()); panel.showResult(res); panel.feedback(res.error ? errorFeedbackHtml(res.error) : "", "warn"); });
+    panel.runBtn.addEventListener("click", run);
     panel.checkBtn.addEventListener("click", attack);
     $("#dbg-hint-btn").addEventListener("click", () => {
       hintLevel = Math.min(2, hintLevel + 1);
       $("#dbg-hint").innerHTML = hintHtml(["Tekan ▶ RUN CODE dulu dan baca pesan errornya dari baris paling bawah.", r.hint], hintLevel);
     });
     $("#dbg-skip").addEventListener("click", () => { queue.push(queue.shift()); toast("Monster ini akan muncul lagi nanti 👀", "info"); show(); });
+
+    async function run() {
+      panel.showRunning();
+      const res = await runCodeWithPrompts(ed.getCode(), panel.getInputs());
+      showInteractiveRunResult(panel, res, "", "info");
+    }
 
     async function attack() {
       panel.showRunning();

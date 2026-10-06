@@ -124,10 +124,11 @@
 .engine-chip { display: inline-flex; align-items: center; gap: 0.45em; font-size: 0.76rem; color: var(--muted); font-weight: 600; margin-left: auto; }
 .dot { width: 8px; height: 8px; border-radius: 50%; background: #94a3b8; display: inline-block; }
 .dot-ok { background: #10b981; box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2); }
-.input-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 0.65rem 0.9rem; }
-.input-box summary { cursor: pointer; font-weight: 700; font-size: 0.9rem; }
-.input-area { width: 100%; margin-top: 0.5rem; font-family: var(--mono); font-size: 0.9rem; border: 1px solid var(--border-strong); border-radius: 8px; padding: 0.5rem 0.7rem; resize: vertical; }
-.input-area:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.15); }
+.input-prompt-notice { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0.85rem; border: 1px solid #c7d2fe; border-radius: 12px; background: linear-gradient(135deg, #eef2ff, #f5f3ff); color: #475569; }
+.input-prompt-icon { flex: 0 0 38px; width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: #fff; box-shadow: 0 2px 8px rgba(79, 70, 229, 0.1); font-size: 1.15rem; }
+.input-prompt-notice > span:last-child { display: grid; gap: 0.12rem; font-size: 0.79rem; line-height: 1.45; }
+.input-prompt-notice b { color: #3730a3; font-size: 0.82rem; }
+.input-prompt-notice code { color: #4338ca; font-size: 0.88em; }
 .output-box { background: #020617; border-radius: 12px; overflow: hidden; border: 1px solid #1e293b; }
 .output-head { display: flex; align-items: center; gap: 0.6rem; color: #94a3b8; font-size: 0.76rem; padding: 0.5rem 0.9rem; background: #0b1222; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; border-bottom: 1px solid #1e293b; }
 .output-head .dots i { width: 8px; height: 8px; }

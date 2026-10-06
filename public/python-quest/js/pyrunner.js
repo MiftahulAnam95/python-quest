@@ -11,6 +11,9 @@ const MiniPy = (() => {
   class PyError extends Error {
     constructor(type, msg, line) { super(msg); this.pyType = type; this.line = line; }
   }
+  class NeedInput extends Error {
+    constructor(prompt, line) { super(prompt); this.prompt = prompt; this.line = line; }
+  }
   class PyFloat { constructor(v) { this.v = v; } }
   const BREAK = { sig: "break" }, CONTINUE = { sig: "continue" };
   class ReturnSignal { constructor(v) { this.v = v; } }
@@ -499,12 +502,21 @@ const MiniPy = (() => {
   const normKey = (k) => (k instanceof PyFloat && Number.isInteger(k.v) ? k.v : k);
 
   /* ---------- Interpreter ---------- */
-  function run(code, inputs) {
+  function run(code, inputs, options) {
     const out = [];
     let outLen = 0;
     let steps = 0, depth = 0, curLine = 0;
     const MAX_STEPS = 400000;
+    const interactive = !!(options && options.interactive);
     const inQueue = (inputs || []).slice();
+    let randomState = Number.isFinite(options && options.randomSeed) ? options.randomSeed >>> 0 : null;
+    const randomValue = randomState === null ? Math.random : () => {
+      randomState = (randomState + 0x6D2B79F5) >>> 0;
+      let t = randomState;
+      t = Math.imul(t ^ (t >>> 15), t | 1);
+      t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
 
     const write = (s) => {
       outLen += s.length;
@@ -701,6 +713,7 @@ const MiniPy = (() => {
     });
     def("input", (args) => {
       const prompt = args.length ? pyStr(args[0]) : "";
+      if (!inQueue.length && interactive) throw new NeedInput(prompt, curLine);
       write(prompt);
       const v = inQueue.length ? String(inQueue.shift()) : "";
       write(v + "\n");
@@ -772,11 +785,11 @@ const MiniPy = (() => {
     const MODULES = {
       random: {
         __module: "random",
-        randint: (a) => { const lo = num(a[0]), hi = num(a[1]); return lo + Math.floor(Math.random() * (hi - lo + 1)); },
-        randrange: (a) => { const r = makeRange(a); return r[Math.floor(Math.random() * r.length)]; },
-        choice: (a) => { const s = iterate(a[0]); if (!s.length) throw E("IndexError", "Cannot choose from an empty sequence"); return s[Math.floor(Math.random() * s.length)]; },
-        random: () => new PyFloat(Math.random()),
-        shuffle: (a) => { const l = a[0]; for (let i = l.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [l[i], l[j]] = [l[j], l[i]]; } return null; },
+        randint: (a) => { const lo = num(a[0]), hi = num(a[1]); return lo + Math.floor(randomValue() * (hi - lo + 1)); },
+        randrange: (a) => { const r = makeRange(a); return r[Math.floor(randomValue() * r.length)]; },
+        choice: (a) => { const s = iterate(a[0]); if (!s.length) throw E("IndexError", "Cannot choose from an empty sequence"); return s[Math.floor(randomValue() * s.length)]; },
+        random: () => new PyFloat(randomValue()),
+        shuffle: (a) => { const l = a[0]; for (let i = l.length - 1; i > 0; i--) { const j = Math.floor(randomValue() * (i + 1)); [l[i], l[j]] = [l[j], l[i]]; } return null; },
       },
       math: {
         __module: "math",
@@ -1064,6 +1077,7 @@ const MiniPy = (() => {
       execBlock(prog, globals);
       return { output: out.join(""), error: null };
     } catch (x) {
+      if (x instanceof NeedInput) return { output: out.join(""), error: null, needsInput: { prompt: x.prompt, line: x.line || curLine } };
       if (x instanceof PyError) return { output: out.join(""), error: { type: x.pyType, msg: x.message, line: x.line || curLine } };
       if (x === BREAK || x === CONTINUE) return { output: out.join(""), error: { type: "SyntaxError", msg: "'break' / 'continue' outside loop", line: curLine } };
       if (x instanceof ReturnSignal) return { output: out.join(""), error: { type: "SyntaxError", msg: "'return' outside function", line: curLine } };
@@ -1092,7 +1106,19 @@ const PyRunner = (() => {
       "sys.stdout = __pq_out",
       "sys.stderr = __pq_out",
       "__pq_in = list(__pq_inputs)",
+      "__pq_interactive = bool(__pq_interactive_flag)",
+      "if __pq_interactive:",
+      "    import random",
+      "    random.seed(__pq_random_seed)",
+      "__pq_waiting_prompt = None",
+      "class __PQNeedInput(BaseException):",
+      "    def __init__(self, prompt):",
+      "        self.prompt = prompt",
       "def __pq_input(prompt=''):",
+      "    global __pq_waiting_prompt",
+      "    if not __pq_in and __pq_interactive:",
+      "        __pq_waiting_prompt = str(prompt)",
+      "        raise __PQNeedInput(__pq_waiting_prompt)",
       "    __pq_out.write(str(prompt))",
       "    v = __pq_in.pop(0) if __pq_in else ''",
       "    __pq_out.write(v + '\\\\n')",
@@ -1105,11 +1131,13 @@ const PyRunner = (() => {
     })();
     ready.then(() => postMessage({ type: "ready" })).catch((e) => postMessage({ type: "loadError", error: String(e) }));
     onmessage = async (e) => {
-      const { id, code, inputs } = e.data;
+      const { id, code, inputs, interactive, randomSeed } = e.data;
       try {
         await ready;
         const ns = py.globals.get("dict")();
         ns.set("__pq_inputs", py.toPy(inputs || []));
+        ns.set("__pq_interactive_flag", !!interactive);
+        ns.set("__pq_random_seed", Number(randomSeed) || 0);
         py.runPython(SETUP, { globals: ns });
         let error = null;
         try {
@@ -1117,9 +1145,10 @@ const PyRunner = (() => {
           py.runPython(code, { globals: ns });
         } catch (err) { error = String(err && err.message ? err.message : err); }
         const output = py.runPython("__pq_out.getvalue()", { globals: ns });
+        const inputPrompt = py.runPython("__pq_waiting_prompt", { globals: ns });
         py.runPython("import sys\\nsys.stdout = sys.__stdout__\\nsys.stderr = sys.__stderr__", { globals: ns });
         ns.destroy();
-        postMessage({ type: "result", id, output, error });
+        postMessage({ type: "result", id, output, error: inputPrompt === null ? error : null, inputPrompt });
       } catch (err) {
         postMessage({ type: "result", id, fatal: String(err) });
       }
@@ -1170,7 +1199,7 @@ const PyRunner = (() => {
     return m ? { type: m[1], msg: m[2], line: lineNo } : { type: "Error", msg: last, line: lineNo };
   }
 
-  function runPyodide(code, inputs) {
+  function runPyodide(code, inputs, options) {
     return new Promise((resolve) => {
       const id = ++msgId;
       const timer = setTimeout(() => {
@@ -1181,18 +1210,26 @@ const PyRunner = (() => {
         resolve({ timeout: true });
       }, 8000);
       pending.set(id, { resolve, timer });
-      worker.postMessage({ id, code, inputs });
+      worker.postMessage({ id, code, inputs, interactive: !!(options && options.interactive), randomSeed: options && options.randomSeed });
     });
   }
 
-  async function run(code, inputs) {
+  async function run(code, inputs, options) {
     inputs = inputs || [];
+    options = options || {};
     if (status === "ready" && worker) {
-      const r = await runPyodide(code, inputs);
+      const r = await runPyodide(code, inputs, options);
       if (r.timeout) return { output: "", error: { type: "TimeoutError", msg: "Program berjalan terlalu lama. Mungkin ada loop yang tidak pernah berhenti?", line: null }, engine: "pyodide" };
-      if (!r.fatal) return { output: r.output || "", error: r.error ? parsePyodideError(r.error) : null, engine: "pyodide" };
+      if (!r.fatal) {
+        return {
+          output: r.output || "",
+          error: r.error ? parsePyodideError(r.error) : null,
+          needsInput: r.inputPrompt === null || r.inputPrompt === undefined ? null : { prompt: String(r.inputPrompt) },
+          engine: "pyodide",
+        };
+      }
     }
-    const res = MiniPy.run(code, inputs);
+    const res = MiniPy.run(code, inputs, options);
     return Object.assign(res, { engine: "mini" });
   }
 

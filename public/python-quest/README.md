@@ -74,6 +74,7 @@ python-quest/
 
 - **Pyodide** (Python asli via WebAssembly) dimuat dari CDN di Web Worker, dengan timeout untuk loop tak berujung.
 - Jika Pyodide belum siap atau perangkat sedang offline, aplikasi otomatis memakai **Mini Python**, interpreter sederhana berbasis JavaScript yang mendukung materi kursus ini.
+- Saat kode yang dijalankan memanggil `input()`, jawaban diminta lewat popup interaktif bergaya SweetAlert; jawaban terakhir ditawarkan kembali pada run berikutnya. Tes challenge tetap berjalan otomatis dengan data uji.
 
 ## ➕ Menambah lesson
 

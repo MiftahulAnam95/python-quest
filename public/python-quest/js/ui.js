@@ -482,10 +482,10 @@ function createRunPanel(container, opts) {
         ${opts.checkLabel ? `<button class="btn btn-primary" data-act="check" type="button">${opts.checkLabel}</button>` : ""}
         <span class="engine-chip" aria-live="polite"></span>
       </div>
-      <details class="input-box" ${opts.inputs && opts.inputs.length ? "open" : ""}>
-        <summary>Input Program <span class="muted small">(jawaban untuk input(), satu baris = satu jawaban)</span></summary>
-        <textarea class="input-area" rows="3" spellcheck="false" aria-label="Input program, satu baris satu jawaban">${escapeHtml((opts.inputs || []).join("\n"))}</textarea>
-      </details>
+      <div class="input-prompt-notice" role="note">
+        <span class="input-prompt-icon" aria-hidden="true">⌨️</span>
+        <span><b>Input interaktif</b><span>Popup jawaban akan muncul otomatis saat kode memanggil <code>input()</code>.</span></span>
+      </div>
       <div class="output-box" aria-live="polite">
         <div class="output-head"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span>Output</div>
         <pre class="output" tabindex="0"><span class="muted">Tekan Run Code untuk menjalankan kodemu.</span></pre>
@@ -501,12 +501,12 @@ function createRunPanel(container, opts) {
   PyRunner.onStatus(updateEngine);
   const outEl = container.querySelector(".output");
   const fbEl = container.querySelector(".feedback");
-  const inputEl = container.querySelector(".input-area");
+  let inputDefaults = (opts.inputs || []).map((value) => String(value));
   return {
     runBtn: container.querySelector('[data-act="run"]'),
     checkBtn: container.querySelector('[data-act="check"]'),
-    getInputs: () => inputEl.value.split("\n").filter((x, i, arr) => !(i === arr.length - 1 && x === "")),
-    setInputs: (arr) => { inputEl.value = arr.join("\n"); },
+    getInputs: () => inputDefaults.slice(),
+    setInputs: (arr) => { inputDefaults = (arr || []).map((value) => String(value)); },
     showRunning: () => { outEl.innerHTML = '<span class="muted"><span class="spinner" aria-hidden="true"></span> Menjalankan…</span>'; },
     showResult: (res) => {
       let html = res.output ? escapeHtml(res.output) : res.error ? "" : '<span class="muted">(tidak ada output — sudah pakai print()?)</span>';
@@ -522,6 +522,103 @@ async function runCode(code, inputs) {
   const res = await PyRunner.run(code, inputs);
   if (!res.error) recordCodeRun();
   return res;
+}
+
+/* Popup bergaya SweetAlert untuk setiap pemanggilan input() dari Python. */
+function promptPythonInput(prompt, index, suggestion) {
+  return new Promise((resolve) => {
+    const promptText = String(prompt || "").trim() || "Program menunggu jawaban dari kamu.";
+    const suggestedValue = String(suggestion == null ? "" : suggestion);
+    const modal = openModal(`<div class="modal-body python-input-body">
+      <div class="python-input-art" aria-hidden="true"><span>⌨️</span></div>
+      <p class="eyebrow">PYTHON QUEST · INPUT()</p>
+      <h2 id="modal-title">Program meminta input</h2>
+      <p class="python-input-step">Jawaban ke-${index}</p>
+      <div class="python-input-prompt"><span class="python-input-caption">Pertanyaan dari program</span><p id="python-input-prompt">${escapeHtml(promptText)}</p></div>
+      <form id="python-input-form" class="python-input-form">
+        <label for="python-input-value">Jawaban kamu</label>
+        <input class="python-input-value" id="python-input-value" type="text" value="${escapeHtml(suggestedValue)}" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="python-input-help">
+        <p class="python-input-help" id="python-input-help">${suggestedValue ? "Jawaban terakhir ditawarkan sebagai saran — kamu bisa mengubahnya." : "Ketik jawaban, lalu tekan Enter untuk melanjutkan."}</p>
+        <div class="python-input-actions"><button class="btn btn-ghost" id="python-input-cancel" type="button">Batalkan</button><button class="btn btn-primary" type="submit">Kirim jawaban <span aria-hidden="true">→</span></button></div>
+      </form>
+    </div>`, { className: "python-input-modal", dismissible: false });
+
+    if (!modal) {
+      resolve({ confirmed: false, value: "" });
+      return;
+    }
+    const form = modal.querySelector("#python-input-form");
+    const field = modal.querySelector("#python-input-value");
+    const cancel = modal.querySelector("#python-input-cancel");
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      closeModal();
+      setTimeout(() => resolve(result), 190);
+    };
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      finish({ confirmed: true, value: field.value });
+    });
+    cancel.addEventListener("click", () => finish({ confirmed: false, value: "" }));
+    modal.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        finish({ confirmed: false, value: "" });
+      }
+    });
+    field.focus();
+    if (suggestedValue) field.select();
+  });
+}
+
+/*
+ * Interpreter dijalankan ulang dengan jawaban yang sudah diberikan sampai
+ * program selesai atau meminta input berikutnya. Seed random dibuat tetap untuk
+ * satu sesi run agar random.randint() tidak berubah di setiap replay.
+ */
+async function runCodeWithPrompts(code, defaultInputs) {
+  const suggestions = (defaultInputs || []).map((value) => String(value));
+  const answers = [];
+  const randomSeed = (Date.now() ^ Math.floor(Math.random() * 0x100000000)) >>> 0;
+  let result = { output: "", error: null, engine: PyRunner.getStatus() };
+  const maxInputs = 200;
+
+  while (answers.length <= maxInputs) {
+    result = await PyRunner.run(code, answers, { interactive: true, randomSeed });
+    if (!result.needsInput) {
+      if (!result.error) recordCodeRun();
+      return Object.assign({}, result, { inputs: answers, cancelled: false });
+    }
+    if (answers.length >= maxInputs) {
+      return Object.assign({}, result, {
+        error: { type: "InputLimitError", msg: `Program meminta lebih dari ${maxInputs} jawaban dalam satu kali run.`, line: null },
+        needsInput: null,
+        inputs: answers,
+        cancelled: false,
+      });
+    }
+
+    const response = await promptPythonInput(result.needsInput.prompt, answers.length + 1, suggestions[answers.length]);
+    if (!response.confirmed) {
+      return Object.assign({}, result, { needsInput: null, inputs: answers, cancelled: true });
+    }
+    answers.push(response.value);
+  }
+
+  return Object.assign({}, result, { inputs: answers, cancelled: false });
+}
+
+function showInteractiveRunResult(panel, result, successHtml, successType) {
+  if (result.inputs && result.inputs.length) panel.setInputs(result.inputs);
+  panel.showResult(result);
+  if (result.cancelled) {
+    panel.feedback('<div class="fb-title">Input dibatalkan</div><p>Jalankan kembali program saat kamu siap menjawab.</p>', "info");
+    return;
+  }
+  panel.feedback(result.error ? errorFeedbackHtml(result.error) : (successHtml || ""), result.error ? "warn" : (successType || "info"));
 }
 
 function errorFeedbackHtml(err) {

@@ -122,7 +122,7 @@ const LESSONS = [
     concept: [
       "<code>input()</code> membuat Python <b>bertanya</b> kepada pengguna, lalu <b>menunggu</b> jawaban yang diketik.",
       "Jawabannya bisa langsung disimpan ke dalam kotak (variable).",
-      "Di website ini, jawaban user ditulis di kotak <b>📝 Input Program</b> di bawah editor. Satu baris = satu jawaban.",
+      "Di website ini, popup akan muncul otomatis setiap kali program menjalankan <code>input()</code>. Ketik jawaban di popup; kalau ada beberapa pertanyaan, jawab satu per satu.",
     ],
     analogy: "🎤 <code>input()</code> itu seperti wawancara: Python mengajukan pertanyaan, kamu menjawab, lalu jawabannya dicatat.",
     example: `nama = input("Siapa nama kamu? ")\nprint("Halo", nama)`,
@@ -133,7 +133,7 @@ const LESSONS = [
       ["print(\"Halo\", nama)", "Tampilkan \"Halo\" lalu isi kotak nama. Tanda koma = beri spasi di antaranya."],
     ],
     flow: ["🐍 Python: \"Siapa nama kamu?\"", "⌨️ User mengetik: Miftah", "📦 nama = \"Miftah\"", "⚙️ Python memproses", "🖥️ Output: Halo Miftah"],
-    tryNote: "Ganti jawaban di kotak Input Program (misalnya namamu), lalu RUN lagi.",
+    tryNote: "Jalankan kode, lalu isi popup yang muncul saat Python memanggil input(). Jawaban terakhir akan ditawarkan lagi saat kamu RUN berikutnya.",
     challenge: {
       task: "Buat program yang bertanya <code>Kamu dari kota mana? </code>, simpan jawabannya ke variable <code>kota</code>, lalu tampilkan <code>Selamat datang, orang</code> diikuti nama kotanya.<br><small>Jawaban tes: <b>Bandung</b></small>",
       starter: `kota = \nprint("Selamat datang, orang", kota)`,
