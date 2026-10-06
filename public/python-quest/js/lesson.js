@@ -172,7 +172,7 @@ function renderLessonPlayer(lesson) {
         <div class="card split-left"><h2 class="h3">Coba sendiri</h2><p>${lesson.tryNote || "Ubah kodenya sesukamu lalu tekan RUN. Tidak ada yang bisa rusak!"}</p>
           <div class="tip">💡 Eksperimen adalah cara belajar paling cepat. Salah itu normal!</div></div>
         <div class="split-right"><div id="try-editor"></div><div id="try-run"></div></div></div>`;
-      const ed = createEditor($("#try-editor"), { code: lesson.example, onRun: () => run() });
+      const ed = createEditor($("#try-editor"), { code: lesson.example, label: "Editor coba sendiri", autoClosePairs: true, onRun: () => run() });
       const panel = createRunPanel($("#try-run"), { inputs: lesson.inputs || [] });
       async function run() {
         panel.showRunning();
@@ -209,6 +209,7 @@ function renderLessonPlayer(lesson) {
     const ed = createEditor($("#ch-editor"), {
       code: ch.starter,
       label: "Editor challenge",
+      autoClosePairs: true,
       onRun: () => check(),
       onChange: (v) => { try { localStorage.setItem(draftKey, v); } catch (e) { /* ignore */ } },
     });
