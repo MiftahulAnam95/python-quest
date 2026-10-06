@@ -114,7 +114,7 @@ const PLAYGROUND_CHALLENGES = [
   },
   {
     id: "p2", title: "Sapa Teman", icon: "👋",
-    instruction: "Tanyakan nama teman dengan <code>input()</code>, lalu tampilkan <code>Halo, [nama]!</code> menggunakan f-string. Isi jawaban di kotak Input Program.",
+    instruction: "Tanyakan nama teman dengan <code>input()</code>, lalu tampilkan <code>Halo, [nama]!</code> menggunakan f-string. Jawaban akan diminta lewat popup saat program dijalankan.",
     starter: `teman = input("Nama teman? ")\n`,
     inputs: ["Rina"],
     expect: { output: [[/Halo, \S+!/, "Tampilkan dengan format: Halo, [nama]!"]], code: [[/f["']/, "Gunakan f-string."]] },

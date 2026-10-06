@@ -146,15 +146,15 @@ function renderLessonPlayer(lesson) {
       body.innerHTML = `<div class="card">
         <h2 class="h3">Contoh kode</h2>
         ${codeBlock(lesson.example)}
-        ${lesson.inputs && lesson.inputs.length ? `<p class="muted small">Jawaban input yang dipakai: <code>${escapeHtml(lesson.inputs.join(", "))}</code></p>` : ""}
+        ${lesson.inputs && lesson.inputs.length ? `<p class="muted small">Contoh jawaban disarankan: <code>${escapeHtml(lesson.inputs.join(", "))}</code> — bisa kamu ubah di popup.</p>` : ""}
         <button class="btn btn-run" id="see-output">▶ Lihat hasilnya</button>
         <pre class="output hidden" id="ex-output" aria-live="polite"></pre></div>`;
       $("#see-output").addEventListener("click", async () => {
         const out = $("#ex-output");
         out.classList.remove("hidden");
         out.innerHTML = '<span class="spinner" aria-hidden="true"></span> Menjalankan…';
-        const res = await runCode(lesson.example, lesson.inputs || []);
-        out.innerHTML = escapeHtml(res.output) + (res.error ? `<span class="out-error">${escapeHtml(res.error.type)}: ${escapeHtml(res.error.msg)}</span>` : "");
+        const res = await runCodeWithPrompts(lesson.example, lesson.inputs || []);
+        out.innerHTML = escapeHtml(res.output) + (res.cancelled ? '<span class="muted">Input dibatalkan.</span>' : res.error ? `<span class="out-error">${escapeHtml(res.error.type)}: ${escapeHtml(res.error.msg)}</span>` : "");
       });
       unlockNext();
     }
@@ -176,9 +176,8 @@ function renderLessonPlayer(lesson) {
       const panel = createRunPanel($("#try-run"), { inputs: lesson.inputs || [] });
       async function run() {
         panel.showRunning();
-        const res = await runCode(ed.getCode(), panel.getInputs());
-        panel.showResult(res);
-        panel.feedback(res.error ? errorFeedbackHtml(res.error) : "✨ Kode berjalan! Coba ubah sesuatu lagi, atau lanjut ke Challenge.", res.error ? "warn" : "ok");
+        const res = await runCodeWithPrompts(ed.getCode(), panel.getInputs());
+        showInteractiveRunResult(panel, res, "✨ Kode berjalan! Coba ubah sesuatu lagi, atau lanjut ke Challenge.", "ok");
       }
       panel.runBtn.addEventListener("click", run);
       unlockNext();
@@ -210,7 +209,7 @@ function renderLessonPlayer(lesson) {
       code: ch.starter,
       label: "Editor challenge",
       autoClosePairs: true,
-      onRun: () => check(),
+      onRun: () => run(),
       onChange: (v) => { try { localStorage.setItem(draftKey, v); } catch (e) { /* ignore */ } },
     });
     if (draft && draft !== ch.starter) ed.setCode(draft);
@@ -225,13 +224,14 @@ function renderLessonPlayer(lesson) {
     drawHints();
     hintBtn.addEventListener("click", () => { state.hintsShown = Math.min(ch.hints.length, state.hintsShown + 1); drawHints(); });
 
-    panel.runBtn.addEventListener("click", async () => {
-      panel.showRunning();
-      const res = await runCode(ed.getCode(), panel.getInputs());
-      panel.showResult(res);
-      panel.feedback(res.error ? errorFeedbackHtml(res.error) : "Kode berjalan. Kalau sudah yakin, tekan <b>✅ Cek Jawaban</b>.", res.error ? "warn" : "info");
-    });
+    panel.runBtn.addEventListener("click", run);
     panel.checkBtn.addEventListener("click", check);
+
+    async function run() {
+      panel.showRunning();
+      const res = await runCodeWithPrompts(ed.getCode(), panel.getInputs());
+      showInteractiveRunResult(panel, res, "Kode berjalan. Kalau sudah yakin, tekan <b>✅ Cek Jawaban</b>.", "info");
+    }
 
     async function check() {
       panel.checkBtn.disabled = true;

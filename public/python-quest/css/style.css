@@ -416,6 +416,23 @@ kbd { background: #fff; border: 1px solid var(--border-strong); border-bottom-wi
 .modal-body { padding: 2rem 1.8rem 1.8rem; }
 .modal-body h2 { margin: 0.2em 0; letter-spacing: -0.02em; }
 .modal-emoji { font-size: 3rem; }
+.modal.python-input-modal { width: min(500px, 100%); border: 1px solid rgba(148, 163, 184, 0.2); }
+.python-input-body { padding: 1.7rem 1.8rem 1.8rem; }
+.python-input-art { display: grid; place-items: center; width: 68px; height: 68px; margin: 0 auto 0.85rem; border: 1px solid #c7d2fe; border-radius: 22px; background: linear-gradient(145deg, #eef2ff, #f5f3ff); box-shadow: 0 8px 22px rgba(99, 102, 241, 0.12); }
+.python-input-art span { font-size: 2rem; }
+.python-input-body > .eyebrow { margin: 0; text-align: center; color: #6366f1; }
+.python-input-body > h2 { margin: 0.3rem 0 0; text-align: center; color: #0f172a; font-size: 1.45rem; }
+.python-input-step { width: max-content; max-width: 100%; margin: 0.55rem auto 1.15rem; padding: 0.25rem 0.65rem; border-radius: 999px; background: #f1f5f9; color: #64748b; font-size: 0.76rem; font-weight: 700; }
+.python-input-prompt { padding: 0.85rem 0.95rem; border: 1px solid #e2e8f0; border-radius: 12px; background: #f8fafc; }
+.python-input-caption { display: block; color: #64748b; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.07em; text-transform: uppercase; }
+.python-input-prompt p { margin: 0.3rem 0 0; color: #1e293b; font-size: 1rem; font-weight: 700; line-height: 1.5; white-space: pre-wrap; overflow-wrap: anywhere; }
+.python-input-form { display: grid; gap: 0.42rem; margin-top: 1.1rem; }
+.python-input-form label { color: #334155; font-size: 0.86rem; font-weight: 700; }
+.python-input-value { width: 100%; min-height: 48px; border: 1px solid #cbd5e1; border-radius: 12px; padding: 0.65rem 0.8rem; background: #fff; color: #0f172a; font: inherit; font-size: 1rem; transition: border-color 0.15s, box-shadow 0.15s; }
+.python-input-value:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
+.python-input-help { min-height: 1.2em; margin: 0; color: #64748b; font-size: 0.76rem; line-height: 1.4; }
+.python-input-actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 0.7rem; }
+.python-input-actions .btn { min-height: 44px; }
 .levelup { background: radial-gradient(400px 160px at 50% 0%, #fef3c7, transparent 70%); }
 .levelup .xpbar { margin: 1rem 0 1.4rem; text-align: left; }
 .bounce { animation: bounce 1s ease 2; display: inline-block; }
@@ -498,4 +515,11 @@ kbd { background: #fff; border: 1px solid var(--border-strong); border-bottom-wi
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+@media (max-width: 520px) {
+  .python-input-body { padding: 1.4rem 1.1rem 1.2rem; }
+  .python-input-art { width: 58px; height: 58px; border-radius: 18px; }
+  .python-input-art span { font-size: 1.7rem; }
+  .python-input-actions { flex-direction: column-reverse; }
+  .python-input-actions .btn { width: 100%; justify-content: center; }
 }
