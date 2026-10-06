@@ -126,16 +126,24 @@ function renderDashboard() {
 /* ======================= WORLD MAP ======================= */
 function renderRoadmap() {
   const p = loadProgress();
+  const doneCount = p.completedLessons.length;
+  const totalPct = Math.round((doneCount / LESSONS.length) * 100);
   $("#page").innerHTML = `
     <div class="page-head">
       <h1 class="h1">World Map</h1>
       <p class="muted">Selesaikan quest berurutan untuk membuka quest berikutnya. Setiap world adalah satu topik besar.</p>
-      <div class="legend"><span>✅ Selesai</span><span>🔓 Terbuka</span><span>🔒 Terkunci</span></div>
+      <div class="map-meta">
+        <div class="map-meta-progress">
+          <div class="map-meta-head"><span class="muted small">Progress petualangan</span><b>${doneCount}/${LESSONS.length} quest · ${totalPct}%</b></div>
+          ${progressBar(totalPct, "#22c55e", "Progress keseluruhan quest")}
+        </div>
+        <div class="legend"><span>✅ Selesai</span><span>🔓 Terbuka</span><span>🔒 Terkunci</span></div>
+      </div>
     </div>
     ${WORLDS.map((w) => {
       const wp = worldProgress(w.id, p);
       const ls = lessonsOfWorld(w.id);
-      return `<section class="world card" style="--wc:${w.color}">
+      return `<section class="world card" id="world-${w.id}" style="--wc:${w.color}">
         <header class="world-head">
           <div class="world-emoji" aria-hidden="true">${w.icon}</div>
           <div class="grow"><p class="eyebrow">WORLD ${w.id}</p><h2 class="h2">${w.name}</h2><p class="muted small">${w.desc}</p></div>
@@ -147,7 +155,7 @@ function renderRoadmap() {
             const st = lessonStatus(l, p);
             const isFinal = l.id === "w7-7";
             return `<li class="path-item ${i % 2 ? "right" : "left"}">
-              <a href="${st.key === "locked" ? "#" : lessonUrl(l)}" class="node node-${st.key} ${isFinal ? "node-final" : ""}" data-locked="${st.key === "locked"}"
+              <a href="${st.key === "locked" ? "#" : lessonUrl(l)}" class="node node-${st.key} ${isFinal ? "node-final" : ""}" data-locked="${st.key === "locked"}" ${st.key === "locked" ? 'aria-disabled="true"' : ""}
                  aria-label="${questLabel(l)}: ${escapeHtml(l.title)} — ${st.text}">
                 <span class="node-circle" aria-hidden="true">${st.key === "locked" ? "🔒" : l.icon}</span>
                 <span class="node-text"><span class="node-num">${questLabel(l)} ${st.icon}</span><span class="node-title">${l.title}</span><span class="node-status">${st.text}</span></span>
