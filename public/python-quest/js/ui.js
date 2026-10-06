@@ -327,8 +327,37 @@ function codeBlock(code, opts) {
 }
 
 /* ---------------- Code editor ---------------- */
+/* Pasangan karakter yang ditutup otomatis: buka kurung & tanda petik. */
 const EDITOR_AUTO_CLOSE_PAIRS = { "(": ")", "[": "]", "{": "}", "'": "'", '"': '"' };
 const EDITOR_CLOSE_CHARS = new Set(Object.values(EDITOR_AUTO_CLOSE_PAIRS));
+const EDITOR_QUOTE_CHARS = new Set(["'", '"']);
+
+/* Cari tahu apakah posisi kursor sedang berada di dalam string Python.
+   Dipakai supaya petik untuk menulis isi teks (mis. "aku suka 'kucing'")
+   tidak memunculkan pasangan petik baru di tengah string.
+   Mengembalikan "" kalau kursor ada di luar string. */
+function editorQuoteContext(code, pos) {
+  let quote = "";
+  for (let i = 0; i < pos && i < code.length; ) {
+    const c = code[i];
+    if (!quote) {
+      if (c === "#") { const nl = code.indexOf("\n", i); i = nl === -1 ? code.length : nl; continue; }
+      if (c === '"' || c === "'") {
+        const triple = code.startsWith(c + c + c, i);
+        quote = triple ? c + c + c : c;
+        i += quote.length;
+        continue;
+      }
+      i++;
+      continue;
+    }
+    if (c === "\\") { i += 2; continue; }
+    if (quote.length === 1 && c === "\n") { quote = ""; i++; continue; } // string satu baris belum ditutup → anggap selesai
+    if (code.startsWith(quote, i)) { quote = ""; i += quote.length; continue; }
+    i++;
+  }
+  return quote;
+}
 
 function createEditor(container, opts) {
   opts = opts || {};
@@ -392,15 +421,26 @@ function createEditor(container, opts) {
     const hasTextShortcut = e.metaKey || (!isAltGraph && (e.ctrlKey || e.altKey));
     if (opts.autoClosePairs && !hasTextShortcut && !e.isComposing) {
       const s = ta.selectionStart, end = ta.selectionEnd;
-      if (s === end && EDITOR_CLOSE_CHARS.has(e.key) && ta.value[s] === e.key) {
+      const value = ta.value;
+      // Penutup yang diketik sama dengan karakter di depan kursor → lompat saja, jangan dobel.
+      if (s === end && EDITOR_CLOSE_CHARS.has(e.key) && value[s] === e.key) {
         e.preventDefault();
         ta.setSelectionRange(s + 1, s + 1);
         return;
       }
+      // Backspace di tengah pasangan kosong (mis. "()") → hapus dua-duanya.
+      if (e.key === "Backspace" && s === end && s > 0 && EDITOR_AUTO_CLOSE_PAIRS[value[s - 1]] === value[s]) {
+        e.preventDefault();
+        ta.setRangeText("", s - 1, s + 1, "end");
+        afterEdit();
+        return;
+      }
       const closer = EDITOR_AUTO_CLOSE_PAIRS[e.key];
       if (closer) {
+        // Petik di dalam string = sedang menulis isi teks, biarkan jadi karakter biasa.
+        if (EDITOR_QUOTE_CHARS.has(e.key) && editorQuoteContext(value, s)) return;
         e.preventDefault();
-        const selected = ta.value.slice(s, end);
+        const selected = value.slice(s, end);
         ta.setRangeText(e.key + selected + closer, s, end, "end");
         ta.setSelectionRange(s + 1, s + 1 + selected.length);
         afterEdit();
