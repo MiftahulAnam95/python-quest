@@ -55,7 +55,11 @@ function renderPlayground() {
       $("#pg-hint-btn").textContent = `💡 Minta hint (${hints}/3)`;
       $("#pg-hint-btn").disabled = hints >= 3;
     }
-    const ed = createEditor($("#pg-editor"), { code: ch ? ch.starter : FREE_CODE, onRun: () => (ch ? check() : run()) });
+    const ed = createEditor($("#pg-editor"), {
+      code: ch ? ch.starter : FREE_CODE,
+      autoClosePairs: true,
+      onRun: () => (ch ? check() : run()),
+    });
     const panel = createRunPanel($("#pg-run"), { inputs: ch ? ch.inputs || (ch.tests ? ch.tests[0].inputs : []) : ["Miftah"], checkLabel: ch ? `${icon("check")} Cek Jawaban` : null });
     async function run() {
       panel.showRunning();

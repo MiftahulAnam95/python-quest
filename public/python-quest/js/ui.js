@@ -327,9 +327,15 @@ function codeBlock(code, opts) {
 }
 
 /* ---------------- Code editor ---------------- */
+const EDITOR_AUTO_CLOSE_PAIRS = { "(": ")", "[": "]", "{": "}", "'": "'", '"': '"' };
+const EDITOR_CLOSE_CHARS = new Set(Object.values(EDITOR_AUTO_CLOSE_PAIRS));
+
 function createEditor(container, opts) {
   opts = opts || {};
   const id = "ed-" + Math.random().toString(36).slice(2, 8);
+  const editorTips = opts.autoClosePairs
+    ? `Tips: tanda kurung & petik otomatis berpasangan · <kbd>Tab</kbd> = 4 spasi · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> = Run · <kbd>Esc</kbd> lalu <kbd>Tab</kbd> = keluar editor`
+    : `Tips: <kbd>Tab</kbd> = 4 spasi · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> = Run · <kbd>Esc</kbd> lalu <kbd>Tab</kbd> = keluar editor`;
   container.innerHTML = `
     <div class="editor">
       <div class="editor-head"><span class="dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="editor-file">main.py</span>
@@ -341,7 +347,7 @@ function createEditor(container, opts) {
           <textarea id="${id}" class="editor-input" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="${escapeHtml(opts.label || "Editor kode Python")}" aria-describedby="${id}-help"></textarea>
         </div>
       </div>
-      <p class="editor-help" id="${id}-help">Tips: <kbd>Tab</kbd> = 4 spasi · <kbd>Ctrl</kbd>+<kbd>Enter</kbd> = Run · <kbd>Esc</kbd> lalu <kbd>Tab</kbd> = keluar editor</p>
+      <p class="editor-help" id="${id}-help">${editorTips}</p>
     </div>`;
   const ta = container.querySelector("textarea");
   const hl = container.querySelector(".editor-hl code");
@@ -357,11 +363,14 @@ function createEditor(container, opts) {
     pre.scrollLeft = ta.scrollLeft;
     gutter.scrollTop = ta.scrollTop;
   }
+  function afterEdit() {
+    sync();
+    if (opts.onChange) opts.onChange(ta.value);
+  }
   function insert(text) {
     const s = ta.selectionStart, e = ta.selectionEnd;
     ta.setRangeText(text, s, e, "end");
-    sync();
-    if (opts.onChange) opts.onChange(ta.value);
+    afterEdit();
   }
   ta.addEventListener("input", () => { sync(); if (opts.onChange) opts.onChange(ta.value); });
   ta.addEventListener("scroll", sync);
@@ -379,6 +388,25 @@ function createEditor(container, opts) {
     }
     escaped = false;
     if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); if (opts.onRun) opts.onRun(); return; }
+    const isAltGraph = e.getModifierState && e.getModifierState("AltGraph");
+    const hasTextShortcut = e.metaKey || (!isAltGraph && (e.ctrlKey || e.altKey));
+    if (opts.autoClosePairs && !hasTextShortcut && !e.isComposing) {
+      const s = ta.selectionStart, end = ta.selectionEnd;
+      if (s === end && EDITOR_CLOSE_CHARS.has(e.key) && ta.value[s] === e.key) {
+        e.preventDefault();
+        ta.setSelectionRange(s + 1, s + 1);
+        return;
+      }
+      const closer = EDITOR_AUTO_CLOSE_PAIRS[e.key];
+      if (closer) {
+        e.preventDefault();
+        const selected = ta.value.slice(s, end);
+        ta.setRangeText(e.key + selected + closer, s, end, "end");
+        ta.setSelectionRange(s + 1, s + 1 + selected.length);
+        afterEdit();
+        return;
+      }
+    }
     if (e.key === "Enter") {
       e.preventDefault();
       const s = ta.selectionStart;
